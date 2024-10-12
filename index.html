@@ -1,409 +1,411 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drive Velocity PID Simulator</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f4f4f4;
-        }
-        .container {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 1200px;
-        }
-        #graph {
-            width: 60%;
-            height: 400px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            background-color: white;
-            margin-right: 20px;
-        }
-        .pid-controls {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            width: 30%;
-            max-width: 350px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        input {
-            margin: 10px 0;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            transition: border-color 0.3s;
-            width: 80%;
-        }
-        input:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-        button {
-            margin: 10px;
-            padding: 10px 15px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            transition: background-color 0.3s, transform 0.2s;
-            width: 80%;
-        }
-        button:hover {
-            background-color: #0056b3;
-            transform: scale(1.05);
-        }
-        button:active {
-            transform: scale(0.95);
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-            padding-top: 60px;
-            animation: fadeIn 0.3s;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 300px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            animation: slideDown 0.3s ease forwards;
-        }
-        @keyframes slideDown {
-            from { transform: translateY(-30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        label {
-            display: block;
-            margin: 5px 0;
-            text-align: center;
-        }
-        .button-container {
-            display: flex;
-            gap: 10px;
-        }
-        #settingsBtn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-        }
-        #githubBtn {
-            margin-top: 20px;
-            background-color: #28a745; /* Green color for GitHub button */
-        }
-        #pidInfoBtn {
-            margin-top: 10px;
-            background-color: #17a2b8; /* Teal color for PID info button */
-        }
-        .error-message {
-            color: red; /* Error message color */
-            font-size: 12px; /* Font size for error messages */
-            margin-top: 5px; /* Space above error messages */
-        }
-        .velocity-error {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-    </style>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Drive Velocity PID Simulator</title>
+ <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+ <style>
+ body {
+ font-family: Arial, sans-serif;
+ margin: 20px;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ background-color: #f4f4f4;
+ }
+ .container {
+ display: flex;
+ flex-wrap: wrap; /* Allow wrapping on smaller screens */
+ justify-content: space-between;
+ width: 100%;
+ max-width: 1200px;
+ }
+ #graph {
+ flex: 1 1 60%; /* Use flexible sizing */
+ height: 400px;
+ border-radius: 10px;
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+ background-color: white;
+ margin-right: 20px;
+ }
+ .pid-controls {
+ background-color: white;
+ border-radius: 10px;
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+ padding: 20px;
+ flex: 1 1 30%; /* Use flexible sizing */
+ max-width: 350px;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ margin-bottom: 20px; /* Additional spacing for smaller screens */
+ }
+ input {
+ margin: 10px 0;
+ padding: 8px;
+ border-radius: 5px;
+ border: 1px solid #ccc;
+ transition: border-color 0.3s;
+ width: 100%; /* Use full width */
+ box-sizing: border-box; /* Include padding in width */
+ }
+ input:focus {
+ border-color: #007bff;
+ outline: none;
+ }
+ button {
+ margin: 10px;
+ padding: 10px 15px;
+ font-size: 16px;
+ cursor: pointer;
+ border-radius: 5px;
+ border: none;
+ background-color: #007bff;
+ color: white;
+ transition: background-color 0.3s, transform 0.2s;
+ width: 80%;
+ }
+ button:hover {
+ background-color: #0056b3;
+ transform: scale(1.05);
+ }
+ button:active {
+ transform: scale(0.95);
+ }
+ .modal {
+ display: none;
+ position: fixed;
+ z-index: 1;
+ left: 0;
+ top: 0;
+ width: 100%;
+ height: 100%;
+ overflow: auto;
+ background-color: rgba(0, 0, 0, 0.4);
+ padding-top: 60px;
+ animation: fadeIn 0.3s;
+ }
+ .modal-content {
+ background-color: #fefefe;
+ margin: auto;
+ padding: 20px;
+ border: 1px solid #888;
+ width: 300px;
+ border-radius: 10px;
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+ animation: slideDown 0.3s ease forwards;
+ }
+ @keyframes slideDown {
+ from { transform: translateY(-30px); opacity: 0; }
+ to { transform: translateY(0); opacity: 1; }
+ }
+ .close {
+ color: #aaa;
+ float: right;
+ font-size: 28px;
+ font-weight: bold;
+ }
+ .close:hover,
+ .close:focus {
+ color: black;
+ text-decoration: none;
+ cursor: pointer;
+ }
+ label {
+ display: block;
+ margin: 5px 0;
+ text-align: center;
+ }
+ .button-container {
+ display: flex;
+ gap: 10px;
+ }
+ #settingsBtn {
+ position: fixed;
+ top: 20px;
+ right: 20px;
+ width: 50px;
+ height: 50px;
+ border-radius: 50%;
+ background-color: #007bff;
+ color: white;
+ border: none;
+ cursor: pointer;
+ font-size: 24px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+ z-index: 10;
+ }
+ #githubBtn {
+ margin-top: 20px;
+ background-color: #28a745; /* Green color for GitHub button */
+ }
+ #pidInfoBtn {
+ margin-top: 10px;
+ background-color: #17a2b8; /* Teal color for PID info button */
+ }
+ .error-message {
+ color: red; /* Error message color */
+ font-size: 12px; /* Font size for error messages */
+ margin-top: 5px; /* Space above error messages */
+ }
+ .velocity-error {
+ margin-top: 10px;
+ font-weight: bold;
+ }
+ </style>
 </head>
 <body>
 
-    <h1>Drive Velocity PID Simulator</h1>
-    <div class="container">
-        <div class="pid-controls">
-            <label>K<sub>P</sub>: <input type="number" id="kP" value="1" step="0.1"></label>
-            <div id="kPError" class="error-message"></div>
-            <label>K<sub>I</sub>: <input type="number" id="kI" value="0" step="0.1"></label>
-            <div id="kIError" class="error-message"></div>
-            <label>K<sub>D</sub>: <input type="number" id="kD" value="0" step="0.1"></label>
-            <div id="kDError" class="error-message"></div>
-            <div id="velocityError" class="velocity-error">Error: 0.00 m/s</div> <!-- Velocity error display -->
-            <button id="pidInfoBtn">What is PID?</button>
-        </div>
-        <div id="graph"></div>
-    </div>
+ <h1>Drive Velocity PID Simulator</h1>
+ <div class="container">
+ <div class="pid-controls">
+ <label>K<sub>P</sub>: <input type="number" id="kP" value="1" step="0.1"></label>
+ <div id="kPError" class="error-message"></div>
+ <label>K<sub>I</sub>: <input type="number" id="kI" value="0" step="0.1"></label>
+ <div id="kIError" class="error-message"></div>
+ <label>K<sub>D</sub>: <input type="number" id="kD" value="0" step="0.1"></label>
+ <div id="kDError" class="error-message"></div>
+ <div id="velocityError" class="velocity-error">Error: 0.00 m/s</div> <!-- Velocity error display -->
+ <button id="pidInfoBtn">What is PID?</button>
+ </div>
+ <div id="graph"></div>
+ </div>
 
-    <div class="button-container">
-        <button id="startBtn">Start Simulation</button>
-        <button id="stopBtn">Stop Simulation</button>
-        <button id="resetBtn">Reset</button>
-    </div>
+ <div class="button-container">
+ <button id="startBtn">Start Simulation</button>
+ <button id="stopBtn">Stop Simulation</button>
+ <button id="resetBtn">Reset</button>
+ </div>
 
-    <button id="githubBtn" onclick="window.open('https://github.com', '_blank')">By Isaaq Khanooni</button>
+ <button id="githubBtn" onclick="window.open('https://github.com/IKKNIGHT/PIDSim', '_blank')">By Isaaq Khanooni</button>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content" id="modalContent">
-            <span class="close" id="closeBtn">&times;</span>
-            <h2>Simulation Settings</h2>
-            <label for="maxVelocity">Max Velocity (m/s):</label>
-            <input type="number" id="maxVelocity" value="20" step="1">
-            <label for="riseTime">Rise Time:</label>
-            <input type="number" id="riseTime" value="10" step="1">
-            <label for="holdTime">Hold Time:</label>
-            <input type="number" id="holdTime" value="10" step="1">
-            <label for="fallTime">Fall Time:</label>
-            <input type="number" id="fallTime" value="10" step="1">
-            <button id="saveSettingsBtn">Save</button>
-        </div>
-    </div>
+ <!-- Settings Modal -->
+ <div id="settingsModal" class="modal">
+ <div class="modal-content" id="modalContent">
+ <span class="close" id="closeBtn">&times;</span>
+ <h2>Simulation Settings</h2>
+ <label for="maxVelocity">Max Velocity (m/s):</label>
+ <input type="number" id="maxVelocity" value="20" step="1">
+ <label for="riseTime">Rise Time:</label>
+ <input type="number" id="riseTime" value="10" step="1">
+ <label for="holdTime">Hold Time:</label>
+ <input type="number" id="holdTime" value="10" step="1">
+ <label for="fallTime">Fall Time:</label>
+ <input type="number" id="fallTime" value="10" step="1">
+ <button id="saveSettingsBtn">Save</button>
+ </div>
+ </div>
 
-    <!-- PID Info Modal -->
-    <div id="pidModal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="pidCloseBtn">&times;</span>
-            <h2>PID Controller</h2>
-            <p>A PID controller is a control loop feedback mechanism widely used in industrial control systems.</p>
-            <p><strong>Tuning:</strong> Adjust the Proportional, Integral, and Derivative values to achieve the desired response.</p>
-            <p>For more information, visit <a href="https://en.wikipedia.org/wiki/PID_controller" target="_blank">Wikipedia</a>.</p>
-        </div>
-    </div>
+ <!-- PID Info Modal -->
+ <div id="pidModal" class="modal">
+ <div class="modal-content">
+ <span class="close" id="pidCloseBtn">&times;</span>
+ <h2>PID Controller</h2>
+ <p>A PID controller is a control loop feedback mechanism widely used in industrial control systems.</p>
+ <p><strong>Tuning:</strong> Adjust the Proportional, Integral, and Derivative values to achieve the desired response.</p>
+ <p>For more information, visit <a href="https://en.wikipedia.org/wiki/PID_controller" target="_blank">Wikipedia</a>.</p>
+ </div>
+ </div>
 
-    <button id="settingsBtn">&#9776;</button> <!-- Hamburger icon -->
+ <button id="settingsBtn">&#9776;</button> <!-- Hamburger icon -->
 
-    <script>
-        let simulationActive = false;
-        let time = 0;
-        let velocity = 0;
-        let previousError = 0;
-        let integral = 0;
+ <script>
+ let simulationActive = false;
+ let time = 0;
+ let velocity = 0;
+ let previousError = 0;
+ let integral = 0;
 
-        const data = [{
-            x: [],
-            y: [],
-            mode: 'lines',
-            name: 'Target Velocity (m/s)',
-            line: { color: 'green' }
-        }, {
-            x: [],
-            y: [],
-            mode: 'lines',
-            name: 'Actual Velocity (m/s)',
-            line: { color: 'red' }
-        }];
+ const data = [{
+ x: [],
+ y: [],
+ mode: 'lines',
+ name: 'Target Velocity (m/s)',
+ line: { color: 'green' }
+ }, {
+ x: [],
+ y: [],
+ mode: 'lines',
+ name: 'Actual Velocity (m/s)',
+ line: { color: 'red' }
+ }];
 
-        const layout = {
-            title: 'Drive Velocity Control Simulation',
-            xaxis: { title: 'Time (seconds)', autorange: true },
-            yaxis: { title: 'Velocity (m/s)', autorange: true }
-        };
+ const layout = {
+ title: 'Drive Velocity Control Simulation',
+ xaxis: { title: 'Time (seconds)', autorange: true },
+ yaxis: { title: 'Velocity (m/s)', autorange: true }
+ };
 
-        Plotly.newPlot('graph', data, layout);
+ Plotly.newPlot('graph', data, layout);
 
-        // Calculate the target velocity based on simulation settings
-        function calculateTargetVelocity() {
-            const maxVelocity = parseFloat(document.getElementById('maxVelocity').value);
-            const riseTime = parseFloat(document.getElementById('riseTime').value);
-            const holdTime = parseFloat(document.getElementById('holdTime').value);
-            const fallTime = parseFloat(document.getElementById('fallTime').value);
-            const totalTime = riseTime + holdTime + fallTime + 10;
+ // Calculate the target velocity based on simulation settings
+ function calculateTargetVelocity() {
+ const maxVelocity = parseFloat(document.getElementById('maxVelocity').value);
+ const riseTime = parseFloat(document.getElementById('riseTime').value);
+ const holdTime = parseFloat(document.getElementById('holdTime').value);
+ const fallTime = parseFloat(document.getElementById('fallTime').value);
+ const totalTime = riseTime + holdTime + fallTime + 10;
 
-            const adjustedTime = time % totalTime;
+ const adjustedTime = time % totalTime;
 
-            // Determine the target velocity based on the current time
-            if (adjustedTime < 10) {
-                return 0;
-            } else if (adjustedTime < 10 + riseTime) {
-                return (maxVelocity / riseTime) * (adjustedTime - 10);
-            } else if (adjustedTime < 10 + riseTime + holdTime) {
-                return maxVelocity;
-            } else if (adjustedTime < totalTime) {
-                return maxVelocity - (maxVelocity / fallTime) * (adjustedTime - 10 - riseTime - holdTime);
-            } else {
-                return 0;
-            }
-        }
+ // Determine the target velocity based on the current time
+ if (adjustedTime < 10) {
+ return 0;
+ } else if (adjustedTime < 10 + riseTime) {
+ return (maxVelocity / riseTime) * (adjustedTime - 10);
+ } else if (adjustedTime < 10 + riseTime + holdTime) {
+ return maxVelocity;
+ } else if (adjustedTime < totalTime) {
+ return maxVelocity - (maxVelocity / fallTime) * (adjustedTime - 10 - riseTime - holdTime);
+ } else {
+ return 0;
+ }
+ }
 
-        // Validate PID values to ensure they are non-negative
-        function validatePIDValues() {
-            let isValid = true;
-            
-            const kP = parseFloat(document.getElementById('kP').value);
-            const kI = parseFloat(document.getElementById('kI').value);
-            const kD = parseFloat(document.getElementById('kD').value);
+ // Validate PID values to ensure they are non-negative
+ function validatePIDValues() {
+ let isValid = true;
+ 
+ const kP = parseFloat(document.getElementById('kP').value);
+ const kI = parseFloat(document.getElementById('kI').value);
+ const kD = parseFloat(document.getElementById('kD').value);
 
-            document.getElementById('kPError').innerText = '';
-            document.getElementById('kIError').innerText = '';
-            document.getElementById('kDError').innerText = '';
+ document.getElementById('kPError').innerText = '';
+ document.getElementById('kIError').innerText = '';
+ document.getElementById('kDError').innerText = '';
 
-            if (kP < 0) {
-                document.getElementById('kPError').innerText = 'Kp must be a non-negative value.';
-                isValid = false;
-            }
-            if (kI < 0) {
-                document.getElementById('kIError').innerText = 'Ki must be a non-negative value.';
-                isValid = false;
-            }
-            if (kD < 0) {
-                document.getElementById('kDError').innerText = 'Kd must be a non-negative value.';
-                isValid = false;
-            }
+ if (kP < 0) {
+ document.getElementById('kPError').innerText = 'Kp must be a non-negative value.';
+ isValid = false;
+ }
+ if (kI < 0) {
+ document.getElementById('kIError').innerText = 'Ki must be a non-negative value.';
+ isValid = false;
+ }
+ if (kD < 0) {
+ document.getElementById('kDError').innerText = 'Kd must be a non-negative value.';
+ isValid = false;
+ }
 
-            return isValid;
-        }
+ return isValid;
+ }
 
-        // Simulate the PID control
-        function simulate() {
-            if (!validatePIDValues()) {
-                return; // Exit if validation fails
-            }
+ // Simulate the PID control
+ function simulate() {
+ if (!validatePIDValues()) {
+ return; // Exit if validation fails
+ }
 
-            const targetVelocity = calculateTargetVelocity();
-            const kP = parseFloat(document.getElementById('kP').value);
-            const kI = parseFloat(document.getElementById('kI').value);
-            const kD = parseFloat(document.getElementById('kD').value);
+ const targetVelocity = calculateTargetVelocity();
+ const kP = parseFloat(document.getElementById('kP').value);
+ const kI = parseFloat(document.getElementById('kI').value);
+ const kD = parseFloat(document.getElementById('kD').value);
 
-            const error = targetVelocity - velocity;
-            integral += error * 0.1;
-            const derivative = (error - previousError) / 0.1;
+ const error = targetVelocity - velocity;
+ integral += error * 0.1;
+ const derivative = (error - previousError) / 0.1;
 
-            const output = kP * error + kI * integral + kD * derivative;
-            velocity += output * 0.1;
+ const output = kP * error + kI * integral + kD * derivative;
+ velocity += output * 0.1;
 
-            // Update time and graph data
-            time += 0.1;
-            data[0].x.push(time);
-            data[0].y.push(targetVelocity);
-            data[1].x.push(time);
-            data[1].y.push(velocity);
-            Plotly.update('graph', data, layout);
+ // Update time and graph data
+ time += 0.1;
+ data[0].x.push(time);
+ data[0].y.push(targetVelocity);
+ data[1].x.push(time);
+ data[1].y.push(velocity);
+ Plotly.update('graph', data, layout);
 
-            // Adjust axis ranges based on current values
-            const currentMax = Math.max(targetVelocity, velocity);
-            const currentMin = Math.min(targetVelocity, velocity);
-            layout.yaxis.range = [Math.min(0, currentMin - 5), currentMax + 5];
-            layout.xaxis.range = [0, time + 5];
-            Plotly.relayout('graph', layout);
+ // Adjust axis ranges based on current values
+ const currentMax = Math.max(targetVelocity, velocity);
+ const currentMin = Math.min(targetVelocity, velocity);
+ layout.yaxis.range = [Math.min(0, currentMin - 5), currentMax + 5];
+ layout.xaxis.range = [0, time + 5];
+ Plotly.relayout('graph', layout);
 
-            previousError = error;
+ previousError = error;
 
-            // Display velocity error
-            const errorValue = Math.abs(error) < 0.01 ? 0.00 : error.toFixed(2); // Fix for -0.00
-            const errorMessage = `Error: ${errorValue} m/s`;
-            document.getElementById('velocityError').innerText = errorMessage;
-        }
+ // Display velocity error
+ const errorValue = Math.abs(error) < 0.01 ? 0.00 : error.toFixed(2); // Fix for -0.00
+ const errorMessage = `Error: ${errorValue} m/s`;
+ document.getElementById('velocityError').innerText = errorMessage;
+ }
 
-        // Start the simulation
-        document.getElementById('startBtn').onclick = () => {
-            simulationActive = true;
-            const interval = setInterval(() => {
-                if (!simulationActive) {
-                    clearInterval(interval);
-                } else {
-                    simulate();
-                }
-            }, 100);
-        };
+ // Start the simulation
+ document.getElementById('startBtn').onclick = () => {
+ simulationActive = true;
+ const interval = setInterval(() => {
+ if (!simulationActive) {
+ clearInterval(interval);
+ } else {
+ simulate();
+ }
+ }, 100);
+ };
 
-        // Stop the simulation
-        document.getElementById('stopBtn').onclick = () => {
-            simulationActive = false;
-        };
+ // Stop the simulation
+ document.getElementById('stopBtn').onclick = () => {
+ simulationActive = false;
+ };
 
-        // Reset the simulation and graphs
-        function resetSimulation() {
-            simulationActive = false;
-            time = 0;
-            velocity = 0;
-            previousError = 0;
-            integral = 0;
-            data[0].x = [];
-            data[0].y = [];
-            data[1].x = [];
-            data[1].y = [];
-            Plotly.newPlot('graph', data, layout);
-            document.getElementById('velocityError').innerText = 'Error: 0.00 m/s'; // Reset error message
-        }
+ // Reset the simulation and graphs
+ function resetSimulation() {
+ simulationActive = false;
+ time = 0;
+ velocity = 0;
+ previousError = 0;
+ integral = 0;
+ data[0].x = [];
+ data[0].y = [];
+ data[1].x = [];
+ data[1].y = [];
+ Plotly.newPlot('graph', data, layout);
+ document.getElementById('velocityError').innerText = 'Error: 0.00 m/s'; // Reset error message
+ }
 
-        document.getElementById('resetBtn').onclick = resetSimulation;
+ document.getElementById('resetBtn').onclick = resetSimulation;
 
-        // Modal functionality
-        function toggleModal(modalId, display) {
-            document.getElementById(modalId).style.display = display;
-        }
+ // Modal functionality
+ function toggleModal(modalId, display) {
+ document.getElementById(modalId).style.display = display;
+ }
 
-        document.getElementById('settingsBtn').onclick = () => {
-            toggleModal('settingsModal', 'block');
-        };
+ document.getElementById('settingsBtn').onclick = () => {
+ toggleModal('settingsModal', 'block');
+ };
 
-        document.getElementById('closeBtn').onclick = () => {
-            toggleModal('settingsModal', 'none');
-        };
+ document.getElementById('closeBtn').onclick = () => {
+ toggleModal('settingsModal', 'none');
+ };
 
-        document.getElementById('saveSettingsBtn').onclick = () => {
-            toggleModal('settingsModal', 'none');
-            // if you want to, we can reset the sim whenever u save so you dont have to worry about external bugs
-            resetSimulation();
-        };
+ document.getElementById('saveSettingsBtn').onclick = () => {
+ toggleModal('settingsModal', 'none');
+ resetSimulation();
+ };
 
-        // PID Info Modal functionality
-        document.getElementById('pidInfoBtn').onclick = () => {
-            toggleModal('pidModal', 'block');
-        };
+ // PID Info Modal functionality
+ document.getElementById('pidInfoBtn').onclick = () => {
+ toggleModal('pidModal', 'block');
+ };
 
-        document.getElementById('pidCloseBtn').onclick = () => {
-            toggleModal('pidModal', 'none');
-        };
+ document.getElementById('pidCloseBtn').onclick = () => {
+ toggleModal('pidModal', 'none');
+ };
 
-        // Close modal on outside click
-        window.onclick = (event) => {
-            if (event.target === document.getElementById('settingsModal')) {
-                toggleModal('settingsModal', 'none');
-            }
-            if (event.target === document.getElementById('pidModal')) {
-                toggleModal('pidModal', 'none');
-            }
-        };
-    </script>
+ // Close modal on outside click
+ window.onclick = (event) => {
+ if (event.target === document.getElementById('settingsModal')) {
+ toggleModal('settingsModal', 'none');
+ }
+ if (event.target === document.getElementById('pidModal')) {
+ toggleModal('pidModal', 'none');
+ }
+ };
+ </script>
 
 </body>
 </html>
